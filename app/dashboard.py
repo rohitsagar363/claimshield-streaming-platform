@@ -224,11 +224,11 @@ def render_intro_panel() -> None:
 
 
 def section_header(title: str, about_label: str, description: str) -> None:
-    title_col, about_col = st.columns([6, 1])
-    with title_col:
+    header_col, helper_col = st.columns([12, 2], vertical_alignment="center")
+    with header_col:
         st.subheader(title)
-    with about_col:
-        with st.popover(about_label, icon=":material/info:"):
+    with helper_col:
+        with st.popover(about_label, help=f"About {title}", use_container_width=True):
             st.markdown(description)
 
 
