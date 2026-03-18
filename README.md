@@ -128,6 +128,14 @@ Derived topics:
 - `claims.sla.breaches`
 - `providers.risk.scores`
 
+Platform footprint in Confluent Cloud:
+
+![Confluent environment](docs/assets/confluent-environment.png)
+
+![Confluent cluster overview](docs/assets/confluent-cluster-overview.png)
+
+![Confluent topic list](docs/assets/confluent-topic-list.png)
+
 ## Confluent Features Used
 
 - Kafka topics
@@ -149,6 +157,16 @@ Primary event contracts:
 - `claim.payment_processed.v1`
 - `claim.risk_alert.v1`
 
+Schema governance in practice:
+
+![Submitted claim schema](docs/assets/schema-claim-submitted.png)
+
+![Risk alert schema](docs/assets/schema-claim-risk-alert.png)
+
+![Stream catalog](docs/assets/stream-catalog.png)
+
+![Stream lineage](docs/assets/stream-lineage.png)
+
 ## Flink Rules
 
 The MVP implements three continuous rules in Flink SQL:
@@ -156,6 +174,10 @@ The MVP implements three continuous rules in Flink SQL:
 1. Missing documentation: raise a high-severity claim alert when required documents do not arrive while the claim is still open.
 2. SLA breach risk: flag claims that remain in `submitted` or `pending_review` beyond the review threshold.
 3. Suspicious provider pattern: compute rolling provider risk scores from stale claims, denials, and missing-document patterns.
+
+Flink processing in Confluent Cloud:
+
+![Running Flink statement](docs/assets/flink-running-statement.png)
 
 ## Dashboard
 
@@ -176,6 +198,14 @@ The dashboard is implemented in `app/dashboard.py` with Streamlit and is deploye
 ClaimShield Copilot is an optional explanation layer inside the dashboard. A user can select a live alert or breach, review the stream context, and generate an explanation that summarizes why the event fired, what evidence supports it, what to do next, and how urgent it is.
 
 ![ClaimShield Copilot explanation](docs/assets/copilot-explanation.png)
+
+## Connector Output
+
+ClaimShield also proves downstream actionability. The `claims.risk.alerts` stream is delivered to Neon Postgres through a managed Confluent PostgreSQL sink connector.
+
+![PostgreSQL sink status](docs/assets/postgres-sink-status.png)
+
+![Neon alert table](docs/assets/neon-alert-table.png)
 
 ## Business Impact
 
@@ -206,27 +236,15 @@ Deployment details:
 - use `.streamlit/secrets.example.toml` as the runtime secret template
 - deploy `app/dashboard.py` as the app entrypoint
 
-## Evidence
+## Official References
 
-Key project evidence:
-
-- [Confluent environment](docs/assets/confluent-environment.png)
-- [Confluent cluster overview](docs/assets/confluent-cluster-overview.png)
-- [Confluent topic list](docs/assets/confluent-topic-list.png)
-- [Submitted claim schema](docs/assets/schema-claim-submitted.png)
-- [Risk alert schema](docs/assets/schema-claim-risk-alert.png)
-- [Running Flink statement](docs/assets/flink-running-statement.png)
-- [Stream catalog](docs/assets/stream-catalog.png)
-- [Stream lineage](docs/assets/stream-lineage.png)
-- [PostgreSQL sink status](docs/assets/postgres-sink-status.png)
-- [Neon alert table](docs/assets/neon-alert-table.png)
-
-## Additional Docs
-
-- `docs/architecture.md`
-- `docs/deployment.md`
-- `docs/demo_script.md`
-- `docs/submission_notes.md`
+- [Confluent Cloud for Apache Flink](https://docs.confluent.io/cloud/current/flink/overview.html)
+- [Confluent Stream Governance](https://docs.confluent.io/cloud/current/data-governance/index.html)
+- [Confluent Stream Catalog](https://docs.confluent.io/cloud/current/stream-governance/stream-catalog.html)
+- [Confluent PostgreSQL Sink Connector](https://docs.confluent.io/cloud/current/connectors/cc-postgresql-sink.html)
+- [Streamlit Community Cloud](https://docs.streamlit.io/deploy/streamlit-community-cloud)
+- [OpenAI Responses API](https://platform.openai.com/docs/api-reference/responses/retrieve)
+- [OpenAI GPT-5 mini](https://platform.openai.com/docs/models/gpt-5-mini)
 
 ## Future Enhancements
 
