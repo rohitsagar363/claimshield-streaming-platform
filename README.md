@@ -38,6 +38,14 @@ High-level flow:
 4. A Streamlit dashboard consumes alerts, breaches, and provider scores.
 5. An optional AI copilot explains selected alerts using downstream context.
 
+Architecture evidence:
+
+![Confluent environment](docs/assets/confluent-environment.png)
+
+![Confluent cluster overview](docs/assets/confluent-cluster-overview.png)
+
+![Confluent topic list](docs/assets/confluent-topic-list.png)
+
 ## Confluent Features Used
 
 - Kafka topics
@@ -47,6 +55,18 @@ High-level flow:
 - Stream Lineage
 - Confluent Cloud for Apache Flink
 - One managed connector for downstream alert delivery
+
+Governance and lineage evidence:
+
+![Submitted claim schema](docs/assets/schema-claim-submitted.png)
+
+![Risk alert schema](docs/assets/schema-claim-risk-alert.png)
+
+![Stream catalog](docs/assets/stream-catalog.png)
+
+![Stream lineage](docs/assets/stream-lineage.png)
+
+![Stream lineage with PostgreSQL sink branch](docs/assets/stream-lineage-postgres.png)
 
 ## Event Model
 
@@ -83,6 +103,10 @@ The MVP implements three continuous rules in Flink SQL:
 2. SLA breach risk: emit a breach event when a claim remains in `submitted` or `pending_review` too long.
 3. Suspicious provider pattern: compute rolling provider risk scores based on delayed or denied claim behavior.
 
+Flink processing evidence:
+
+![Running Flink statement](docs/assets/flink-running-statement.png)
+
 ## Dashboard
 
 The dashboard is implemented in `app/dashboard.py` with Streamlit and shows:
@@ -95,6 +119,10 @@ The dashboard is implemented in `app/dashboard.py` with Streamlit and shows:
 - Provider leaderboard
 - Claim detail table
 
+Dashboard evidence:
+
+![ClaimShield dashboard](docs/assets/dashboard-live-alerts.png)
+
 ## AI Copilot
 
 ClaimShield Copilot is an optional downstream explanation layer in the dashboard. When a user selects an alert or breach, the app sends alert context, claim context, and provider context to an LLM and returns:
@@ -103,6 +131,10 @@ ClaimShield Copilot is an optional downstream explanation layer in the dashboard
 - Supporting evidence
 - Recommended next action
 - Urgency level
+
+Copilot evidence:
+
+![ClaimShield Copilot explanation](docs/assets/copilot-explanation.png)
 
 ## Business Impact
 
@@ -137,6 +169,12 @@ Deployment guide:
 - Add runtime secrets using `.streamlit/secrets.example.toml` as the template
 - Deploy `app/dashboard.py` as the Streamlit entrypoint
 
+Connector and sink evidence:
+
+![PostgreSQL sink connector status](docs/assets/postgres-sink-status.png)
+
+![Neon alert table](docs/assets/neon-alert-table.png)
+
 ## Demo Flow
 
 1. Show the Confluent environment, cluster, and topic list.
@@ -146,6 +184,10 @@ Deployment guide:
 5. Watch a live alert appear in the dashboard.
 6. Open the copilot explanation.
 7. End on Stream Lineage or connector status.
+
+Optional demo support assets:
+
+![Producer terminal output](docs/assets/producer-terminal.png)
 
 ## Future Enhancements
 
