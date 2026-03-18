@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "provider.profile_updated.v1",
+  "title": "provider.profile_updated.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "provider_id": {
+      "type": "string"
+    },
+    "specialty": {
+      "type": "string"
+    },
+    "region": {
+      "type": "string"
+    },
+    "risk_tier": {
+      "type": "string",
+      "enum": ["low", "medium", "high"]
+    },
+    "event_time": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "provider_id",
+    "specialty",
+    "region",
+    "risk_tier",
+    "event_time"
+  ]
+}

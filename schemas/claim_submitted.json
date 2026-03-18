@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "claim.submitted.v1",
+  "title": "claim.submitted.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "claim_id": {
+      "type": "string"
+    },
+    "member_id": {
+      "type": "string"
+    },
+    "provider_id": {
+      "type": "string"
+    },
+    "submitted_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "amount": {
+      "type": "number"
+    },
+    "procedure_code": {
+      "type": "string"
+    },
+    "priority": {
+      "type": "string",
+      "enum": ["low", "medium", "high"]
+    },
+    "region": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "claim_id",
+    "member_id",
+    "provider_id",
+    "submitted_at",
+    "amount",
+    "procedure_code",
+    "priority",
+    "region"
+  ]
+}

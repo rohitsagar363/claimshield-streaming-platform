@@ -1,0 +1,17 @@
+.DS_Store
+.env
+.streamlit/secrets.toml
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+dist/
+build/
+*.egg-info/
+streamlit.log
+data/*.csv
+data/*.json

@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "claim.document_uploaded.v1",
+  "title": "claim.document_uploaded.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "document_id": {
+      "type": "string"
+    },
+    "claim_id": {
+      "type": "string"
+    },
+    "document_type": {
+      "type": "string",
+      "enum": [
+        "clinical_notes",
+        "lab_results",
+        "prior_auth",
+        "referral",
+        "invoice"
+      ]
+    },
+    "uploaded_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "uploaded_by": {
+      "type": "string",
+      "enum": ["provider_portal", "fax_ingest", "ops_user", "member_portal"]
+    }
+  },
+  "required": [
+    "document_id",
+    "claim_id",
+    "document_type",
+    "uploaded_at",
+    "uploaded_by"
+  ]
+}

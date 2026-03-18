@@ -1,0 +1,6 @@
+confluent-kafka[json,schemaregistry]>=2.8.0
+pandas>=2.2.3
+python-dotenv>=1.0.1
+requests>=2.32.3
+streamlit>=1.43.2
+openai>=1.68.2

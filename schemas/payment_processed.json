@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "claim.payment_processed.v1",
+  "title": "claim.payment_processed.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "payment_id": {
+      "type": "string"
+    },
+    "claim_id": {
+      "type": "string"
+    },
+    "paid_amount": {
+      "type": "number"
+    },
+    "paid_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "payment_id",
+    "claim_id",
+    "paid_amount",
+    "paid_at"
+  ]
+}

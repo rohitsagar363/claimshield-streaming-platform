@@ -1,0 +1,29 @@
+{
+  "name": "claimshield-postgres-alerts-sink",
+  "config": {
+    "connector.class": "PostgresSink",
+    "name": "claimshield-postgres-alerts-sink",
+    "kafka.auth.mode": "KAFKA_API_KEY",
+    "kafka.api.key": "__KAFKA_API_KEY__",
+    "kafka.api.secret": "__KAFKA_API_SECRET__",
+    "topics": "claims.risk.alerts",
+    "input.data.format": "JSON_SR",
+    "input.key.format": "STRING",
+    "connection.host": "__POSTGRES_HOST__",
+    "connection.port": "__POSTGRES_PORT__",
+    "connection.user": "__POSTGRES_USER__",
+    "connection.password": "__POSTGRES_PASSWORD__",
+    "db.name": "__POSTGRES_DB__",
+    "ssl.mode": "require",
+    "insert.mode": "UPSERT",
+    "pk.mode": "record_key",
+    "pk.fields": "key",
+    "auto.create": "true",
+    "auto.evolve": "true",
+    "table.name.format": "claims_risk_alerts",
+    "db.timezone": "UTC",
+    "date.timezone": "UTC",
+    "timestamp.precision.mode": "microseconds",
+    "tasks.max": "1"
+  }
+}

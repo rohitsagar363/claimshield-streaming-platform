@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "claim.risk_alert.v1",
+  "title": "claim.risk_alert.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "alert_id": {
+      "type": "string"
+    },
+    "claim_id": {
+      "type": "string"
+    },
+    "provider_id": {
+      "type": "string"
+    },
+    "alert_type": {
+      "type": "string",
+      "enum": [
+        "missing_documentation",
+        "sla_breach",
+        "provider_pattern"
+      ]
+    },
+    "severity": {
+      "type": "string",
+      "enum": ["low", "medium", "high", "critical"]
+    },
+    "message": {
+      "type": "string"
+    },
+    "event_time": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "alert_id",
+    "claim_id",
+    "provider_id",
+    "alert_type",
+    "severity",
+    "message",
+    "event_time"
+  ]
+}
