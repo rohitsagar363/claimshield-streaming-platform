@@ -474,11 +474,15 @@ def render_dashboard(data: dict[str, pd.DataFrame]) -> None:
 
     left, right = st.columns([3, 1])
     with right:
-        auto_refresh = st.toggle("Auto refresh", value=True)
+        auto_refresh = st.toggle("Auto refresh", value=False)
         refresh_seconds = st.slider("Refresh interval (seconds)", 5, 30, 10)
         if st.button("Refresh now"):
             load_dashboard_data.clear()
             st.rerun()
+        if not auto_refresh:
+            st.caption(
+                "Auto refresh is off by default. Click `Refresh now` or enable auto refresh to pull the latest Kafka-backed records."
+            )
 
     metrics = st.columns(4)
     metrics[0].metric("Total Active Claims", metric_value(enriched, "claim_id"))
