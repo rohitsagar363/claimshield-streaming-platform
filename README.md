@@ -1,74 +1,117 @@
 # ClaimShield
 
+ClaimShield is a real-time healthcare claims risk intelligence platform built on Confluent Cloud. It ingests claims workflow events, governs them with schemas, applies Flink SQL rules to detect risk, publishes live alerts and provider risk scores, and surfaces the results in a business-facing dashboard with an optional AI Copilot.
+
+**Live dashboard:** [claimshield-streaming-platform-z7akdrwfzbfeaf5pqdzvbs.streamlit.app](https://claimshield-streaming-platform-z7akdrwfzbfeaf5pqdzvbs.streamlit.app/)
+
+## What Was Built
+
+ClaimShield is not just a dashboard. It is a complete streaming application with:
+
+- governed healthcare claim events in Kafka topics
+- JSON Schema contracts in Schema Registry
+- continuous Flink SQL pipelines for enrichment, alerts, SLA breaches, and provider scoring
+- a managed PostgreSQL sink connector for downstream actionability
+- a public Streamlit command center for business users
+- an AI Copilot that explains why an alert fired and what to do next
+
 ## Problem
 
-Healthcare claims teams often react to delays, missing documentation, and provider risk patterns after SLAs are already breached. They need a live operational view of claim workflow risk, not a delayed reporting view.
+Claims teams often discover missing documentation, SLA breaches, and risky provider patterns too late. By the time those issues appear in static reports, operations teams have already lost time and escalation options.
 
 ## Solution
 
-ClaimShield is a real-time healthcare claims risk intelligence app that ingests claims workflow events, governs them with schemas, processes them with Confluent Cloud for Apache Flink, emits live alerts and provider risk scores, and shows them in a business-facing dashboard. An optional AI copilot explains why alerts fired and what to do next.
+ClaimShield turns live claims workflow events into actionable operational signals. The platform ingests claim submissions, document uploads, status changes, and provider profile updates into Confluent Cloud, enriches them with Flink SQL, and publishes downstream streams that power a risk command center for analysts and operations teams.
 
 ## Why Confluent
 
-ClaimShield is built around a Confluent-native architecture:
+ClaimShield is intentionally Confluent-native:
 
-- Managed Kafka topics for event ingestion and derived streams
-- Schema Registry for event contracts and compatibility control
-- Stream Governance for catalog, schema visibility, and lineage
-- Confluent Cloud for Apache Flink for serverless streaming SQL
-- Managed connectors for ecosystem integration
+- Kafka topics provide the event backbone
+- Schema Registry enforces event contracts
+- Stream Governance adds lineage, catalog, and metadata visibility
+- Confluent Cloud for Apache Flink runs the core streaming rules
+- A managed PostgreSQL sink connector proves downstream actionability
 
-This keeps core business logic in streaming infrastructure rather than custom application code.
+The result is a governed streaming system, not a stitched-together demo.
 
 ## Architecture
 
-Current Confluent resources:
+The platform has four layers:
 
-- Environment: `claimshield-demo` (`env-xknzkk`)
-- Kafka cluster: `claimshield-demo-cluster` (`lkc-v33kk5`)
-- Schema Registry cluster: `lsrc-x11kkk`
-- Flink compute pool / workspace layer: `claimshield-risk-workspace` (`lfcp-wnnk39`)
-- Cloud / region: Azure `eastus`
+1. Ingestion: Python producers publish raw claims workflow events into Kafka topics.
+2. Governance: JSON Schema contracts are registered and managed in Schema Registry.
+3. Processing: Flink SQL enriches claim events, detects claim risk, flags SLA breaches, and scores providers.
+4. Consumption: a Streamlit dashboard and a PostgreSQL sink consume the derived outputs.
 
-High-level flow:
+End-to-end flow:
 
-1. Python producers publish raw claims and provider events into Kafka.
-2. Schema Registry validates event contracts.
-3. Flink SQL enriches claims, detects rule violations, and publishes derived streams.
-4. A Streamlit dashboard consumes alerts, breaches, and provider scores.
-5. An optional AI copilot explains selected alerts using downstream context.
+```mermaid
+flowchart LR
+    subgraph Ingestion
+        P["Python producers"]
+    end
 
-Architecture evidence:
+    subgraph Confluent_Cloud["Confluent Cloud"]
+        subgraph Raw_Streams["Raw Kafka topics"]
+            T1["claims.submitted.raw"]
+            T2["claims.documents.raw"]
+            T3["claims.status.raw"]
+            T4["providers.profile.raw"]
+            T5["claims.payments.raw"]
+        end
 
-![Confluent environment](docs/assets/confluent-environment.png)
+        SR["Schema Registry + Stream Governance"]
+        F["Confluent Cloud for Apache Flink"]
 
-![Confluent cluster overview](docs/assets/confluent-cluster-overview.png)
+        subgraph Derived_Streams["Derived Kafka topics"]
+            D1["claims.enriched.curated"]
+            D2["claims.risk.alerts"]
+            D3["claims.sla.breaches"]
+            D4["providers.risk.scores"]
+        end
+    end
 
-![Confluent topic list](docs/assets/confluent-topic-list.png)
+    subgraph Consumption
+        DB["Streamlit dashboard"]
+        AI["ClaimShield Copilot"]
+        PG["PostgreSQL sink connector"]
+        N["Neon Postgres"]
+    end
 
-## Confluent Features Used
+    P --> T1
+    P --> T2
+    P --> T3
+    P --> T4
+    P --> T5
 
-- Kafka topics
-- Schema Registry
-- Stream Governance Essentials
-- Stream Catalog / Data Portal
-- Stream Lineage
-- Confluent Cloud for Apache Flink
-- One managed connector for downstream alert delivery
+    SR --- T1
+    SR --- T2
+    SR --- T3
+    SR --- T4
+    SR --- T5
 
-Governance and lineage evidence:
+    T1 --> F
+    T2 --> F
+    T3 --> F
+    T4 --> F
+    T5 --> F
 
-![Submitted claim schema](docs/assets/schema-claim-submitted.png)
+    F --> D1
+    F --> D2
+    F --> D3
+    F --> D4
 
-![Risk alert schema](docs/assets/schema-claim-risk-alert.png)
+    D1 --> DB
+    D2 --> DB
+    D3 --> DB
+    D4 --> DB
+    DB --> AI
+    D2 --> PG
+    PG --> N
+```
 
-![Stream catalog](docs/assets/stream-catalog.png)
-
-![Stream lineage](docs/assets/stream-lineage.png)
-
-![Stream lineage with PostgreSQL sink branch](docs/assets/stream-lineage-postgres.png)
-
-## Event Model
+In practical terms, ClaimShield watches claims as they move through submission, documentation, and review. Flink turns those events into operational signals, and the dashboard turns those signals into something an analyst can act on immediately.
 
 Raw topics:
 
@@ -84,9 +127,20 @@ Derived topics:
 - `claims.risk.alerts`
 - `claims.sla.breaches`
 - `providers.risk.scores`
-- `claims.alerts.explanations`
 
-Primary event types:
+## Confluent Features Used
+
+- Kafka topics
+- Schema Registry
+- Stream Governance
+- Stream Catalog / Data Portal
+- Stream Lineage
+- Confluent Cloud for Apache Flink
+- Managed PostgreSQL sink connector
+
+## Event Model
+
+Primary event contracts:
 
 - `claim.submitted.v1`
 - `claim.document_uploaded.v1`
@@ -99,60 +153,43 @@ Primary event types:
 
 The MVP implements three continuous rules in Flink SQL:
 
-1. Missing documentation: emit a high-severity alert when no supporting document arrives within the SLA window after submission.
-2. SLA breach risk: emit a breach event when a claim remains in `submitted` or `pending_review` too long.
-3. Suspicious provider pattern: compute rolling provider risk scores based on delayed or denied claim behavior.
-
-Flink processing evidence:
-
-![Running Flink statement](docs/assets/flink-running-statement.png)
+1. Missing documentation: raise a high-severity claim alert when required documents do not arrive while the claim is still open.
+2. SLA breach risk: flag claims that remain in `submitted` or `pending_review` beyond the review threshold.
+3. Suspicious provider pattern: compute rolling provider risk scores from stale claims, denials, and missing-document patterns.
 
 ## Dashboard
 
-The dashboard is implemented in `app/dashboard.py` with Streamlit and shows:
+The dashboard is implemented in `app/dashboard.py` with Streamlit and is deployed publicly for review. It shows:
 
-- Total active claims
-- High-risk claims
+- total active claims
+- high-risk claims
 - SLA breaches
-- Flagged providers
-- Live alert feed
-- Provider leaderboard
-- Claim detail table
-
-Dashboard evidence:
+- flagged providers
+- live alert feed
+- provider leaderboard
+- claim detail table
 
 ![ClaimShield dashboard](docs/assets/dashboard-live-alerts.png)
 
 ## AI Copilot
 
-ClaimShield Copilot is an optional downstream explanation layer in the dashboard. When a user selects an alert or breach, the app sends alert context, claim context, and provider context to an LLM and returns:
-
-- Why the alert fired
-- Supporting evidence
-- Recommended next action
-- Urgency level
-
-Copilot evidence:
+ClaimShield Copilot is an optional explanation layer inside the dashboard. A user can select a live alert or breach, review the stream context, and generate an explanation that summarizes why the event fired, what evidence supports it, what to do next, and how urgent it is.
 
 ![ClaimShield Copilot explanation](docs/assets/copilot-explanation.png)
 
 ## Business Impact
 
-ClaimShield reduces operational blind spots by surfacing risk earlier, helps claims teams prioritize work, and gives provider operations teams a live signal for problematic behavior patterns.
+ClaimShield helps claims operations teams spot risk while workflows are still in motion. That means faster intervention on missing documents, better SLA management, and earlier visibility into provider behavior that can create operational drag or financial leakage.
 
 ## How to Run
 
-Run flow:
-
 1. Configure Confluent Cloud credentials in `.env`.
 2. Register schemas from `schemas/`.
-3. Create raw topics in Confluent Cloud.
-4. Run Python producers from `producers/`.
-5. Execute Flink SQL statements from `flink/`.
-6. Optionally set `OPENAI_API_KEY` and `CLAIMSHIELD_COPILOT_MODEL` for ClaimShield Copilot.
-7. Launch the Streamlit app from `app/dashboard.py`.
-
-Local dashboard launch example:
+3. Create the raw topics in Confluent Cloud.
+4. Run the Python producers in `producers/`.
+5. Execute the Flink SQL statements in `flink/`.
+6. Optionally set `OPENAI_API_KEY` and `CLAIMSHIELD_COPILOT_MODEL`.
+7. Launch the dashboard with:
 
 ```bash
 source .venv/bin/activate
@@ -161,38 +198,40 @@ streamlit run app/dashboard.py
 
 ## Deployment
 
-The recommended free deployment target for the dashboard is Streamlit Community Cloud, not Vercel.
+The recommended free deployment target for the dashboard is Streamlit Community Cloud.
 
-Deployment guide:
+Deployment details:
 
-- See `docs/deployment.md`
-- Add runtime secrets using `.streamlit/secrets.example.toml` as the template
-- Deploy `app/dashboard.py` as the Streamlit entrypoint
+- see `docs/deployment.md`
+- use `.streamlit/secrets.example.toml` as the runtime secret template
+- deploy `app/dashboard.py` as the app entrypoint
 
-Connector and sink evidence:
+## Evidence
 
-![PostgreSQL sink connector status](docs/assets/postgres-sink-status.png)
+Key project evidence:
 
-![Neon alert table](docs/assets/neon-alert-table.png)
+- [Confluent environment](docs/assets/confluent-environment.png)
+- [Confluent cluster overview](docs/assets/confluent-cluster-overview.png)
+- [Confluent topic list](docs/assets/confluent-topic-list.png)
+- [Submitted claim schema](docs/assets/schema-claim-submitted.png)
+- [Risk alert schema](docs/assets/schema-claim-risk-alert.png)
+- [Running Flink statement](docs/assets/flink-running-statement.png)
+- [Stream catalog](docs/assets/stream-catalog.png)
+- [Stream lineage](docs/assets/stream-lineage.png)
+- [PostgreSQL sink status](docs/assets/postgres-sink-status.png)
+- [Neon alert table](docs/assets/neon-alert-table.png)
 
-## Demo Flow
+## Additional Docs
 
-1. Show the Confluent environment, cluster, and topic list.
-2. Open one schema in Schema Registry.
-3. Show one running Flink statement.
-4. Trigger a claim workflow event.
-5. Watch a live alert appear in the dashboard.
-6. Open the copilot explanation.
-7. End on Stream Lineage or connector status.
-
-Optional demo support assets:
-
-![Producer terminal output](docs/assets/producer-terminal.png)
+- `docs/architecture.md`
+- `docs/deployment.md`
+- `docs/demo_script.md`
+- `docs/submission_notes.md`
 
 ## Future Enhancements
 
-- Add payment anomaly rules
-- Add document classification and extraction
-- Add provider peer grouping benchmarks
-- Add case management workflow actions from alerts
-- Add historical replay and backtesting
+- payment anomaly rules
+- document classification and extraction
+- provider peer benchmarking
+- case management actions from alerts
+- historical replay and backtesting
