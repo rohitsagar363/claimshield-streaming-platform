@@ -165,6 +165,73 @@ def load_dashboard_data() -> dict[str, pd.DataFrame]:
         consumer.close()
 
 
+def apply_dashboard_theme() -> None:
+    st.markdown(
+        """
+        <style>
+        .stApp .block-container {
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+        }
+        .claimshield-intro {
+            padding: 1rem 1.1rem;
+            border: 1px solid rgba(49, 51, 63, 0.14);
+            border-radius: 1rem;
+            background: linear-gradient(180deg, rgba(248,249,252,0.95), rgba(255,255,255,0.98));
+            margin-bottom: 0.75rem;
+        }
+        .claimshield-intro h3 {
+            margin: 0 0 0.45rem 0;
+            font-size: 1rem;
+            font-weight: 700;
+        }
+        .claimshield-intro p {
+            margin: 0;
+            color: rgba(49, 51, 63, 0.85);
+            font-size: 0.95rem;
+            line-height: 1.45;
+        }
+        div[data-testid="stMetric"] {
+            padding: 0.6rem 0.35rem;
+        }
+        div[data-testid="stMetric"] label {
+            font-size: 0.95rem;
+        }
+        div[data-testid="stMetricValue"] {
+            margin-top: -0.2rem;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def render_intro_panel() -> None:
+    st.markdown(
+        """
+        <div class="claimshield-intro">
+          <h3>What This App Does</h3>
+          <p>
+            ClaimShield turns live healthcare claims workflow events into operational signals.
+            It highlights missing documentation, SLA risk, and provider behavior patterns using
+            Confluent Kafka, Schema Registry, and Flink SQL, then exposes the results in a
+            business-facing dashboard with an optional AI Copilot.
+          </p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def section_header(title: str, about_label: str, description: str) -> None:
+    title_col, about_col = st.columns([6, 1])
+    with title_col:
+        st.subheader(title)
+    with about_col:
+        with st.popover(about_label, icon=":material/info:"):
+            st.markdown(description)
+
+
 def metric_value(df: pd.DataFrame, column: str | None = None, high_risk: bool = False) -> int:
     if df.empty:
         return 0
@@ -469,11 +536,28 @@ def render_dashboard(data: dict[str, pd.DataFrame]) -> None:
     scores = latest_records_by_key(data["providers.risk.scores"])
 
     st.set_page_config(page_title="ClaimShield Risk Command Center", layout="wide")
+    apply_dashboard_theme()
     st.title("ClaimShield Risk Command Center")
     st.caption("Real-time claims risk intelligence from Confluent Kafka + Flink SQL")
-
-    left, right = st.columns([3, 1])
-    with right:
+    header_col, control_col = st.columns([3.3, 1.5])
+    with header_col:
+        render_intro_panel()
+        with st.popover("Feature Guide", icon=":material/tactic:"):
+            st.markdown(
+                """
+                - **KPI cards**: summarize the current risk state of the streaming pipeline.
+                - **Live Alert Feed**: shows claim-level risk alerts and SLA breach events.
+                - **Provider Leaderboard**: ranks providers using rolling risk metrics from Flink SQL.
+                - **Claim Detail Table**: gives a claim-by-claim operational view with alert counts.
+                - **ClaimShield Copilot**: explains the selected event using live stream context.
+                """
+            )
+    with control_col:
+        section_header(
+            "Controls",
+            "About",
+            "Use these controls to refresh the dashboard manually or to turn on periodic polling from the Kafka-backed topics.",
+        )
         auto_refresh = st.toggle("Auto refresh", value=False)
         refresh_seconds = st.slider("Refresh interval (seconds)", 5, 30, 10)
         if st.button("Refresh now"):
@@ -485,19 +569,43 @@ def render_dashboard(data: dict[str, pd.DataFrame]) -> None:
             )
 
     metrics = st.columns(4)
-    metrics[0].metric("Total Active Claims", metric_value(enriched, "claim_id"))
-    metrics[1].metric("High-Risk Claims", metric_value(alerts, high_risk=True))
-    metrics[2].metric("SLA Breaches", metric_value(breaches, "claim_id"))
+    metrics[0].metric(
+        "Total Active Claims",
+        metric_value(enriched, "claim_id"),
+        help="Distinct claims currently represented in the enriched claim stream.",
+        border=True,
+    )
+    metrics[1].metric(
+        "High-Risk Claims",
+        metric_value(alerts, high_risk=True),
+        help="Claims with active high or critical risk alerts in the alert stream.",
+        border=True,
+    )
+    metrics[2].metric(
+        "SLA Breaches",
+        metric_value(breaches, "claim_id"),
+        help="Distinct claims currently associated with claim-processing SLA breach events.",
+        border=True,
+    )
     flagged_providers = (
         scores[scores["risk_level"].isin(["high", "critical"])]
         if not scores.empty and "risk_level" in scores.columns
         else scores.iloc[0:0]
     )
-    metrics[3].metric("Flagged Providers", metric_value(flagged_providers, "provider_id"))
+    metrics[3].metric(
+        "Flagged Providers",
+        metric_value(flagged_providers, "provider_id"),
+        help="Providers whose latest rolling risk score is currently high or critical.",
+        border=True,
+    )
 
     feed_col, provider_col = st.columns([3, 2])
     with feed_col:
-        st.subheader("Live Alert Feed")
+        section_header(
+            "Live Alert Feed",
+            "About Feed",
+            "This feed merges claim-level risk alerts and SLA breach events. Select a row to sync that event into ClaimShield Copilot.",
+        )
         alert_feed = prepare_alert_feed(alerts, breaches)
         if alert_feed.empty:
             st.info("No alert or breach records available yet.")
@@ -523,14 +631,22 @@ def render_dashboard(data: dict[str, pd.DataFrame]) -> None:
                     selected_feed_key = alert_feed.iloc[selected_index]["_key"]
 
     with provider_col:
-        st.subheader("Provider Leaderboard")
+        section_header(
+            "Provider Leaderboard",
+            "About Providers",
+            "This table shows the latest provider risk scores generated by Flink SQL from rolling claim outcomes such as denials, stale claims, and missing documentation.",
+        )
         provider_leaderboard = prepare_provider_leaderboard(scores)
         if provider_leaderboard.empty:
             st.info("No provider score records available yet.")
         else:
             st.dataframe(provider_leaderboard, use_container_width=True, hide_index=True)
 
-    st.subheader("Claim Detail Table")
+    section_header(
+        "Claim Detail Table",
+        "About Claims",
+        "This operational table combines enriched claim context with alert and breach counts so analysts can quickly understand which claims need attention.",
+    )
     claim_details = prepare_claim_details(enriched, alerts, breaches)
     if claim_details.empty:
         st.info("No enriched claim records available yet.")
